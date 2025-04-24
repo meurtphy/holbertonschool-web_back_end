@@ -1,32 +1,29 @@
 #!/usr/bin/env python3
 """
-Module that defines the wait_n function.
-It uses asynchronous programming to run multiple coroutines
-that wait for a random delay and returns the delays in ascending order.
+Module that defines an async routine which runs wait_random multiple times
+and returns the delays in ascending order.
 """
-
 import asyncio
 from typing import List
-
+from heapq import heappush, heappop
 wait_random = __import__('0-basic_async_syntax').wait_random
-
 async def wait_n(n: int, max_delay: int) -> List[float]:
     """
-    Spawns wait_random n times with the specified max_delay and
-    returns the list of all the delays in ascending order.
-
+    Asynchronously spawns wait_random `n` times with the specified `max_delay`
+    and returns a list of delays in ascending order.
     Args:
-        n (int): Number of times to spawn wait_random.
-        max_delay (int): The maximum delay for each wait_random call.
-
+        n (int): The number of times to spawn wait_random.
+        max_delay (int): The maximum delay allowed for each wait_random call.
     Returns:
-        List[float]: A list of all the delays in ascending order.
+        List[float]: List of delays returned from wait_random,
+        sorted in ascending order.
     """
-    tasks = [asyncio.create_task(wait_random(max_delay)) for _ in range(n)]
-    delays = []
-
-    for task in asyncio.as_completed(tasks):
+    heap = []
+    tasks = []
+    for _ in range(n):
+        tasks.append(asyncio.create_task(wait_random(max_delay)))
+    for task in tasks:
         delay = await task
-        delays.append(delay)
-
+        heappush(heap, delay)
+    delays = [heappop(heap) for _ in range(n)]
     return delays
