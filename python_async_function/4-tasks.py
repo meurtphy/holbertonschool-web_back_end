@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Module that defines task_wait_n to run multiple task_wait_random asynchronously.
+Module that defines task_wait_n to run multiple.
 """
 
 import asyncio
