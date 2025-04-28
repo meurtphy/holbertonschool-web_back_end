@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Simple """
+
 import asyncio
 from typing import List
 
