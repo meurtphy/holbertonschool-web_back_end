@@ -4,7 +4,6 @@
 import csv
 import math
 from typing import Dict, List
-from simple_helper_function import index_range
 
 
 class Server:
@@ -30,7 +29,36 @@ class Server:
             self.__dataset = dataset[1:]  # Remove header
         return self.__dataset
 
-    def get_hyper(self, page: int = 1, page_size: int = 10) -> Dict[str, object]:
+    def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
+        """
+        Return a page of the dataset.
+
+        Args:
+            page (int): page number (starts at 1)
+            page_size (int): number of items per page
+
+        Returns:
+            List[List]: page of the dataset
+        """
+        assert (
+            isinstance(page, int) and page > 0
+        ), "Page must be a positive integer"
+        assert (
+            isinstance(page_size, int) and page_size > 0
+        ), "Page size must be a positive integer"
+
+        start_index = (page - 1) * page_size
+        end_index = start_index + page_size
+        dataset = self.dataset()
+
+        if start_index >= len(dataset):
+            return []
+
+        return dataset[start_index:end_index]
+
+    def get_hyper(
+        self, page: int = 1, page_size: int = 10
+    ) -> Dict[str, object]:
         """
         Return pagination details with hypermedia metadata.
 
@@ -39,26 +67,11 @@ class Server:
             page_size (int): number of items per page
 
         Returns:
-            Dict[str, object]: contains page data and navigation info.
+            Dict[str, object]: metadata and page content.
         """
-        assert isinstance(page, int) and page > 0
-        assert isinstance(page_size, int) and page_size > 0
-
-        start, end = index_range(page, page_size)
-        dataset = self.dataset()
-        return dataset[start:end]
-
-    def get_hyper(self, page: int = 1, page_size: int = 10) -> Dict[str, object]:
-        """
-        Return pagination details with hypermedia
-        """
-        assert isinstance(page, int) and page > 0
-        assert isinstance(page_size, int) and page_size > 0
-
         data = self.get_page(page, page_size)
         dataset = self.dataset()
-        total_items = len(dataset)
-        total_pages = math.ceil(total_items / page_size)
+        total_pages = math.ceil(len(dataset) / page_size)
 
         return {
             'page_size': len(data),
