@@ -12,8 +12,8 @@ const app = http.createServer((req, res) => {
 
     fs.readFile(database, 'utf-8')
       .then((data) => {
-        const lines = data.split('\n').filter(line => line.trim() !== '');
-        const students = lines.slice(1).map(line => line.split(','));
+        const lines = data.split('\n').filter((line) => line.trim() !== '');
+        const students = lines.slice(1).map((line) => line.split(','));
 
         const fields = {};
         for (const student of students) {
