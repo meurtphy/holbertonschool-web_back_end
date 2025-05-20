@@ -26,13 +26,15 @@ const app = http.createServer((req, res) => {
         output += `Number of students: ${students.length}\n`;
 
         for (const field in fields) {
-          output += `Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}\n`;
+          if (Object.prototype.hasOwnProperty.call(fields, field)) {
+            output += `Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}\n`;
+          }
         }
 
         res.end(output);
       })
       .catch(() => {
-        res.end('Cannot load the database\n'); // ✅ avec saut de ligne !
+        res.end('Cannot load the database\n');
       });
   } else {
     res.writeHead(404);
