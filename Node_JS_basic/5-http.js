@@ -22,7 +22,7 @@ const app = http.createServer((req, res) => {
           fields[field].push(firstname);
         }
 
-        let output = `This is the list of our students\n`;
+        let output = 'This is the list of our students\n';
         output += `Number of students: ${students.length}\n`;
 
         for (const field in fields) {
@@ -32,7 +32,7 @@ const app = http.createServer((req, res) => {
         res.end(output);
       })
       .catch(() => {
-        res.end('Cannot load the database');
+        res.end('Cannot load the database\n'); // ✅ avec saut de ligne !
       });
   } else {
     res.writeHead(404);
