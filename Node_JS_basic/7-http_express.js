@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const countStudents = require('./3-read_file_async');
 
 const app = express();
@@ -13,8 +14,7 @@ app.get('/students', (req, res) => {
   res.set('Content-Type', 'text/plain');
   countStudents(db)
     .then(() => {
-      // countStudents fait déjà les console.log(), mais ici on doit renvoyer un format identique
-      const data = require('fs').readFileSync(db, 'utf8')
+      const data = fs.readFileSync(db, 'utf8')
         .split('\n')
         .filter((line) => line.trim() !== '');
       const students = data.slice(1);
