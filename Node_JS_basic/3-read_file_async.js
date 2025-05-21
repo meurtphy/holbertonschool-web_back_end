@@ -8,25 +8,20 @@ function countStudents(path) {
         return;
       }
 
-      const lines = data.trim().split('\n').filter(line => line.trim() !== '');
+      const lines = data.trim().split('\n').filter((line) => line);
       const students = lines.slice(1);
-
-      console.log(`Number of students: ${students.length}`);
-
       const fields = {};
 
-      for (const line of students) {
-        const [firstname, , , field] = line.split(',');
-        if (!fields[field]) {
-          fields[field] = [];
-        }
+      for (const student of students) {
+        const [firstname, , , field] = student.split(',');
+        if (!fields[field]) fields[field] = [];
         fields[field].push(firstname);
       }
 
+      console.log(`Number of students: ${students.length}`);
       for (const [field, names] of Object.entries(fields)) {
         console.log(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
       }
-
       resolve();
     });
   });

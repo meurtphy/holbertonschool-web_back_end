@@ -1,52 +1,44 @@
 const http = require('http');
-const fs = require('fs').promises;
+const fs = require('fs');
 
-const countStudents = async (path) => {
-  try {
-    const data = await fs.readFile(path, 'utf8');
-    const lines = data.split('\n')
-      .filter((line) => line.trim().length > 0)
-      .slice(1);
+function countStudents(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8', (err, data) => {
+      if (err) reject(new Error('Cannot load the database'));
+      const lines = data.trim().split('\n').filter((line) => line);
+      const students = lines.slice(1);
+      const fields = {};
 
-    const students = {};
-    let totalStudents = 0;
-
-    for (const line of lines) {
-      const [firstName, , , field] = line.split(',');
-      if (!students[field]) {
-        students[field] = [];
+      for (const student of students) {
+        const [firstname, , , field] = student.split(',');
+        if (!fields[field]) fields[field] = [];
+        fields[field].push(firstname);
       }
-      students[field].push(firstName);
-      totalStudents += 1;
-    }
 
-    let output = `Number of students: ${totalStudents}\n`;
-    for (const [field, names] of Object.entries(students)) {
-      output += `Number of students in ${field}: ${names.length}. List: ${names.join(', ')}\n`;
-    }
-    return output;
-  } catch (error) {
-    throw new Error('Cannot load the database');
-  }
-};
+      let output = `Number of students: ${students.length}`;
+      for (const [field, names] of Object.entries(fields)) {
+        output += `\nNumber of students in ${field}: ${names.length}. List: ${names.join(', ')}`;
+      }
 
-const app = http.createServer(async (req, res) => {
+      resolve(output);
+    });
+  });
+}
+
+const app = http.createServer((req, res) => {
+  const db = process.argv[2];
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+
   if (req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
-    const dbFile = process.argv[2];
-    try {
-      const studentsData = await countStudents(dbFile);
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end(`This is the list of our students\n${studentsData.trim()}`);
-    } catch (error) {
-      res.writeHead(200, { 'Content-Type': 'text/plain' }); // toujours 200 car la route est valide
-      res.end(`This is the list of our students\n${error.message}`);
-    }
-  } else {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Not found');
+    countStudents(db)
+      .then((report) => {
+        res.end(`This is the list of our students\n${report}`);
+      })
+      .catch((err) => {
+        res.end(err.message);
+      });
   }
 });
 

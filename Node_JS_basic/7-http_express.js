@@ -1,8 +1,33 @@
 const express = require('express');
-const fs = require('fs').promises;
+const fs = require('fs');
+
+function countStudents(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8', (err, data) => {
+      if (err) reject(new Error('Cannot load the database'));
+
+      const lines = data.trim().split('\n').filter((line) => line);
+      const students = lines.slice(1);
+      const fields = {};
+
+      for (const student of students) {
+        const [firstname, , , field] = student.split(',');
+        if (!fields[field]) fields[field] = [];
+        fields[field].push(firstname);
+      }
+
+      let output = `Number of students: ${students.length}`;
+      for (const [field, names] of Object.entries(fields)) {
+        output += `\nNumber of students in ${field}: ${names.length}. List: ${names.join(', ')}`;
+      }
+
+      resolve(output);
+    });
+  });
+}
 
 const app = express();
-const database = process.argv[2]; // le CSV passé en argument
+const db = process.argv[2];
 
 app.get('/', (req, res) => {
   res.send('Hello Holberton School!');
@@ -10,29 +35,13 @@ app.get('/', (req, res) => {
 
 app.get('/students', async (req, res) => {
   try {
-    const data = await fs.readFile(database, 'utf-8');
-    const lines = data.split('\n').filter((line) => line.trim() !== '');
-    const students = lines.slice(1).map((line) => line.split(','));
-
-    const fields = {};
-    for (const student of students) {
-      const [firstname, , , field] = student;
-      if (!fields[field]) fields[field] = [];
-      fields[field].push(firstname);
-    }
-
-    let output = 'This is the list of our students\n';
-    output += `Number of students: ${students.length}\n`;
-
-    for (const field in fields) {
-      output += `Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}\n`;
-    }
-
-    res.type('text/plain').send(output);
+    const report = await countStudents(db);
+    res.send(`This is the list of our students\n${report}`);
   } catch (err) {
-    res.status(500).send('Cannot load the database');
+    res.send(err.message);
   }
 });
 
 app.listen(1245);
+
 module.exports = app;
