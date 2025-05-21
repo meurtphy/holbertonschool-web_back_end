@@ -19,12 +19,13 @@ function countStudents(path) {
         fields[field].push(firstname);
       }
 
-      let output = `Number of students: ${students.length}`;
+      const report = [];
+      report.push(`Number of students: ${students.length}`);
       for (const [field, names] of Object.entries(fields)) {
-        output += `\nNumber of students in ${field}: ${names.length}. List: ${names.join(', ')}`;
+        report.push(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
       }
 
-      resolve(output);
+      resolve(report);
     });
   });
 }
@@ -40,8 +41,8 @@ app.get('/', (req, res) => {
 app.get('/students', async (req, res) => {
   res.set('Content-Type', 'text/plain');
   try {
-    const report = await countStudents(db);
-    res.status(200).send(`This is the list of our students\n${report}`);
+    const lines = await countStudents(db);
+    res.status(200).send(`This is the list of our students\n${lines.join('\n')}`);
   } catch (err) {
     res.status(500).send('Cannot load the database');
   }
