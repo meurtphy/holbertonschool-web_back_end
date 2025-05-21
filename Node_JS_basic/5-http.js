@@ -4,7 +4,11 @@ const fs = require('fs');
 function countStudents(path) {
   return new Promise((resolve, reject) => {
     fs.readFile(path, 'utf8', (err, data) => {
-      if (err) reject(new Error('Cannot load the database'));
+      if (err) {
+        reject(new Error('Cannot load the database'));
+        return;
+      }
+
       const lines = data.trim().split('\n').filter((line) => line);
       const students = lines.slice(1);
       const fields = {};
@@ -37,8 +41,10 @@ const app = http.createServer((req, res) => {
         res.end(`This is the list of our students\n${report}`);
       })
       .catch((err) => {
-        res.end(err.message);
+        res.end(`Cannot load the database`);
       });
+  } else {
+    res.end('Not found');
   }
 });
 
