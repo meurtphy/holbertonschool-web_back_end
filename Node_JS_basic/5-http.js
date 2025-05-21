@@ -1,44 +1,50 @@
 const http = require('http');
-const fs = require('fs').promises;
+const fs = require('fs');
 
-const database = process.argv[2];
+function countStudents(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8', (err, data) => {
+      if (err) {
+        reject(new Error('Cannot load the database'));
+        return;
+      }
 
-const app = http.createServer((req, res) => {
-  if (req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Hello Holberton School!');
-  } else if (req.url === '/students') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
+      const lines = data.trim().split('\n').filter((l) => l.trim() !== '');
+      const students = lines.slice(1); // on ignore l’en-tête
 
-    fs.readFile(database, 'utf-8')
-      .then((data) => {
-        const lines = data.split('\n').filter((line) => line.trim() !== '');
-        const students = lines.slice(1).map((line) => line.split(','));
-
-        const fields = {};
-        for (const student of students) {
-          const [firstname, , , field] = student;
-          if (!fields[field]) fields[field] = [];
-          fields[field].push(firstname);
-        }
-
-        let output = 'This is the list of our students\n';
-        output += `Number of students: ${students.length}\n`;
-
-        for (const field in fields) {
-          if (Object.prototype.hasOwnProperty.call(fields, field)) {
-            output += `Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}\n`;
-          }
-        }
-
-        res.end(output);
-      })
-      .catch(() => {
-        res.end('Cannot load the database\n');
+      const groups = { CS: [], SWE: [] };
+      students.forEach((line) => {
+        const fields = line.split(',');
+        const firstname = fields[0];
+        const field = fields[fields.length - 1];
+        if (groups[field]) groups[field].push(firstname);
       });
+
+      let summary = `Number of students: ${students.length}\n`;
+      summary += `Number of students in CS: ${groups.CS.length}. List: ${groups.CS.join(', ')}\n`;
+      summary += `Number of students in SWE: ${groups.SWE.length}. List: ${groups.SWE.join(', ')}`;
+      resolve(summary);
+    });
+  });
+}
+
+const app = http.createServer(async (req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+
+  if (req.url === '/') {
+    res.end('Hello Holberton School!\n');
+  } else if (req.url === '/students') {
+    const dbPath = process.argv[2];
+    res.write('This is the list of our students\n');
+    try {
+      const summary = await countStudents(dbPath);
+      res.end(`${summary}\n`);
+    } catch (err) {
+      res.end('Cannot load the database\n');
+    }
   } else {
-    res.writeHead(404);
-    res.end();
+    res.statusCode = 404;
+    res.end('Not found\n');
   }
 });
 

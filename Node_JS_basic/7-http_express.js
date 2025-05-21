@@ -11,46 +11,38 @@ function countStudents(path) {
         return;
       }
 
-      const lines = data.trim().split('\n');
-      const students = lines.slice(1).filter((line) => line.trim() !== '');
-      const cs = [];
-      const swe = [];
+      const lines = data.trim().split('\n').filter((l) => l.trim() !== '');
+      const students = lines.slice(1);
 
-      for (const line of students) {
-        const record = line.split(',');
-        const field = record[record.length - 1];
-        const firstname = record[0];
+      const groups = { CS: [], SWE: [] };
+      students.forEach((line) => {
+        const fields = line.split(',');
+        const firstname = fields[0];
+        const field = fields[fields.length - 1];
+        if (groups[field]) groups[field].push(firstname);
+      });
 
-        if (field === 'CS') {
-          cs.push(firstname);
-        } else if (field === 'SWE') {
-          swe.push(firstname);
-        }
-      }
-
-      let result = '';
-      result += `Number of students: ${students.length}\n`;
-      result += `Number of students in CS: ${cs.length}. List: ${cs.join(', ')}\n`;
-      result += `Number of students in SWE: ${swe.length}. List: ${swe.join(', ')}`;
-
-      resolve(result);
+      let summary = `Number of students: ${students.length}\n`;
+      summary += `Number of students in CS: ${groups.CS.length}. List: ${groups.CS.join(', ')}\n`;
+      summary += `Number of students in SWE: ${groups.SWE.length}. List: ${groups.SWE.join(', ')}`;
+      resolve(summary);
     });
   });
 }
 
 app.get('/', (req, res) => {
-  res.set('Content-Type', 'text/plain');
-  res.send('Hello Holberton School!\n'); // ← AJOUT DU \n
+  res.type('text/plain').send('Hello Holberton School!\n');
 });
 
 app.get('/students', async (req, res) => {
-  const path = process.argv[2];
+  res.type('text/plain');
+  res.write('This is the list of our students\n');
+
   try {
-    const studentSummary = await countStudents(path);
-    res.set('Content-Type', 'text/plain');
-    res.send(`This is the list of our students\n${studentSummary}\n`); // ← AJOUT DU \n FINAL
+    const summary = await countStudents(process.argv[2]);
+    res.end(`${summary}\n`);
   } catch (err) {
-    res.status(500).send('This is the list of our students\nCannot load the database\n'); // ← AJOUT DU \n
+    res.end('Cannot load the database\n');
   }
 });
 
