@@ -11,36 +11,38 @@ function countStudents(path) {
         return;
       }
 
-      const lines = data.trim().split('\n').filter((l) => l.trim() !== '');
+      const lines = data.trim().split('\n').filter((line) => line.trim() !== '');
       const students = lines.slice(1);
 
-      const groups = { CS: [], SWE: [] };
+      const fields = {};
+
       students.forEach((line) => {
-        const fields = line.split(',');
-        const firstname = fields[0];
-        const field = fields[fields.length - 1];
-        if (groups[field]) groups[field].push(firstname);
+        const [firstname, , , field] = line.split(',');
+        if (!fields[field]) fields[field] = [];
+        fields[field].push(firstname);
       });
 
-      let summary = `Number of students: ${students.length}\n`;
-      summary += `Number of students in CS: ${groups.CS.length}. List: ${groups.CS.join(', ')}\n`;
-      summary += `Number of students in SWE: ${groups.SWE.length}. List: ${groups.SWE.join(', ')}`;
-      resolve(summary);
+      let output = `Number of students: ${students.length}\n`;
+      for (const field in fields) {
+        output += `Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}\n`;
+      }
+
+      resolve(output.trim());
     });
   });
 }
 
 app.get('/', (req, res) => {
-  res.type('text/plain').send('Hello Holberton School!\n');
+  res.type('text/plain');
+  res.send('Hello Holberton School!\n');
 });
 
 app.get('/students', async (req, res) => {
   res.type('text/plain');
   res.write('This is the list of our students\n');
-
   try {
-    const summary = await countStudents(process.argv[2]);
-    res.end(`${summary}\n`);
+    const data = await countStudents(process.argv[2]);
+    res.end(`${data}\n`);
   } catch (err) {
     res.end('Cannot load the database\n');
   }
