@@ -31,17 +31,16 @@ const countStudents = async (path) => {
 };
 
 const app = http.createServer(async (req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+
   if (req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
     try {
       const dbFile = process.argv[2];
       const studentsData = await countStudents(dbFile);
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
       res.end(`This is the list of our students\n${studentsData.trim()}`);
     } catch (error) {
-      res.writeHead(200, { 'Content-Type': 'text/plain' }); // Still 200 because it's a valid request, just error in content
       res.end(`This is the list of our students\n${error.message}`);
     }
   } else {
