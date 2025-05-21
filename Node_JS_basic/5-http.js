@@ -31,16 +31,17 @@ const countStudents = async (path) => {
 };
 
 const app = http.createServer(async (req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-
   if (req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
+    const dbFile = process.argv[2];
     try {
-      const dbFile = process.argv[2];
       const studentsData = await countStudents(dbFile);
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
       res.end(`This is the list of our students\n${studentsData.trim()}`);
     } catch (error) {
+      res.writeHead(200, { 'Content-Type': 'text/plain' }); // toujours 200 car la route est valide
       res.end(`This is the list of our students\n${error.message}`);
     }
   } else {
